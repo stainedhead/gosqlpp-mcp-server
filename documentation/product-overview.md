@@ -48,3 +48,9 @@ information on sqlpp is found in https://github.com/stainedhead/gosqlpp .  https
 7. Ensure we wrap the @drivers shortcut, which returns the list of drivers the sqlpp application provides.  This allows the caller 
 8. Ensure we update the README.md to be a high quality and professional file which would help later adopters use, understand the implementation and configuration of the mcp server.
 9. Ensure we add documentation to ./documentation/product-generation-results.md of the technical details related to the code that was generated.
+
+### Preparatoin
+
+Ensure you have reviewed the added documentation, technical details and requirements so you have the information you need to understand the application.  Use tools if needed to do added research or execute your plan.
+
+Think deeply about the features above.  Develop a plan and share the plan with me before you begin to generate the code.  Once I have approved the plan, execute the plan and ensure you lint and run the unit tests on the code until it is complete and builds and tests completely.  
