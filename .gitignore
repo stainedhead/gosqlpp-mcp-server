@@ -5,6 +5,7 @@
 *.so
 *.dylib
 gosqlpp-mcp-server
+.bin
 
 # Test binary, built with `go test -c`
 *.test

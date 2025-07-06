@@ -30,39 +30,18 @@ func NewExecutor(executablePath string, timeoutSeconds int, logger *logrus.Logge
 
 // ExecuteSchemaCommand executes a schema-related command (@schema-*)
 func (e *Executor) ExecuteSchemaCommand(schemaType, connection, filter, output string) (*types.SqlppResult, error) {
-	args := []string{fmt.Sprintf("@schema-%s", schemaType)}
-	
-	if connection != "" {
-		args = append(args, "--connection", connection)
-	}
-	
+	// Build the schema command
+	schemaCommand := fmt.Sprintf("@schema-%s", schemaType)
 	if filter != "" {
-		args = append(args, "--filter", filter)
+		schemaCommand = fmt.Sprintf("%s %s", schemaCommand, filter)
 	}
 	
-	if output != "" {
-		args = append(args, "--output", output)
-	}
-
-	return e.executeCommand(args)
+	return e.executeStdinCommandWithOptions(schemaCommand, connection, output)
 }
 
 // ExecuteSQLCommand executes a SQL command
 func (e *Executor) ExecuteSQLCommand(connection, command, output string) (*types.SqlppResult, error) {
-	args := []string{}
-	
-	if connection != "" {
-		args = append(args, "--connection", connection)
-	}
-	
-	if output != "" {
-		args = append(args, "--output", output)
-	}
-	
-	// Add the SQL command as the last argument
-	args = append(args, "--command", command)
-
-	return e.executeCommand(args)
+	return e.executeStdinCommandWithOptions(command, connection, output)
 }
 
 // ListConnections lists available database connections
@@ -73,8 +52,7 @@ func (e *Executor) ListConnections() (*types.SqlppResult, error) {
 
 // ListDrivers lists available database drivers
 func (e *Executor) ListDrivers() (*types.SqlppResult, error) {
-	args := []string{"@drivers"}
-	return e.executeCommand(args)
+	return e.executeStdinCommand("@drivers")
 }
 
 // executeCommand executes a sqlpp command with the given arguments
@@ -123,6 +101,157 @@ func (e *Executor) executeCommand(args []string) (*types.SqlppResult, error) {
 			"args":        args,
 			"output_size": len(result.Output),
 		}).Debug("sqlpp command succeeded")
+	}
+
+	return result, nil
+}
+
+// executeStdinCommandWithOptions executes a sqlpp command by sending input via stdin with connection and output options
+func (e *Executor) executeStdinCommandWithOptions(input, connection, output string) (*types.SqlppResult, error) {
+	args := []string{"--stdin"}
+	
+	if connection != "" {
+		args = append(args, "--connection", connection)
+	}
+	
+	if output != "" {
+		args = append(args, "--output", output)
+	}
+
+	e.logger.WithFields(logrus.Fields{
+		"executable": e.executablePath,
+		"args":       args,
+		"input":      input,
+		"timeout":    e.timeout,
+	}).Debug("Executing sqlpp command with stdin and options")
+
+	// Create context with timeout
+	ctx, cancel := context.WithTimeout(context.Background(), e.timeout)
+	defer cancel()
+
+	// Create command with args
+	cmd := exec.CommandContext(ctx, e.executablePath, args...)
+	
+	// Set up stdin pipe
+	stdin, err := cmd.StdinPipe()
+	if err != nil {
+		return nil, fmt.Errorf("failed to create stdin pipe: %w", err)
+	}
+
+	// Capture stdout and stderr
+	var stdout, stderr bytes.Buffer
+	cmd.Stdout = &stdout
+	cmd.Stderr = &stderr
+
+	// Start the command
+	if err := cmd.Start(); err != nil {
+		return nil, fmt.Errorf("failed to start command: %w", err)
+	}
+
+	// Write input to stdin and close it
+	if _, err := stdin.Write([]byte(input)); err != nil {
+		stdin.Close()
+		return nil, fmt.Errorf("failed to write to stdin: %w", err)
+	}
+	stdin.Close()
+
+	// Wait for command to complete
+	err = cmd.Wait()
+	
+	result := &types.SqlppResult{
+		Success: err == nil,
+		Output:  strings.TrimSpace(stdout.String()),
+	}
+
+	if err != nil {
+		stderrStr := strings.TrimSpace(stderr.String())
+		if stderrStr != "" {
+			result.Error = stderrStr
+		} else {
+			result.Error = err.Error()
+		}
+		
+		e.logger.WithFields(logrus.Fields{
+			"error":  err,
+			"stderr": stderrStr,
+			"args":   args,
+			"input":  input,
+		}).Error("sqlpp stdin command with options failed")
+	} else {
+		e.logger.WithFields(logrus.Fields{
+			"args":        args,
+			"input":       input,
+			"output_size": len(result.Output),
+		}).Debug("sqlpp stdin command with options succeeded")
+	}
+
+	return result, nil
+}
+
+// executeStdinCommand executes a sqlpp command by sending input via stdin
+func (e *Executor) executeStdinCommand(input string) (*types.SqlppResult, error) {
+	e.logger.WithFields(logrus.Fields{
+		"executable": e.executablePath,
+		"input":      input,
+		"timeout":    e.timeout,
+	}).Debug("Executing sqlpp command with stdin")
+
+	// Create context with timeout
+	ctx, cancel := context.WithTimeout(context.Background(), e.timeout)
+	defer cancel()
+
+	// Create command with --stdin flag
+	cmd := exec.CommandContext(ctx, e.executablePath, "--stdin")
+	
+	// Set up stdin pipe
+	stdin, err := cmd.StdinPipe()
+	if err != nil {
+		return nil, fmt.Errorf("failed to create stdin pipe: %w", err)
+	}
+
+	// Capture stdout and stderr
+	var stdout, stderr bytes.Buffer
+	cmd.Stdout = &stdout
+	cmd.Stderr = &stderr
+
+	// Start the command
+	if err := cmd.Start(); err != nil {
+		return nil, fmt.Errorf("failed to start command: %w", err)
+	}
+
+	// Write input to stdin and close it
+	if _, err := stdin.Write([]byte(input)); err != nil {
+		stdin.Close()
+		return nil, fmt.Errorf("failed to write to stdin: %w", err)
+	}
+	stdin.Close()
+
+	// Wait for command to complete
+	err = cmd.Wait()
+	
+	result := &types.SqlppResult{
+		Success: err == nil,
+		Output:  strings.TrimSpace(stdout.String()),
+	}
+
+	if err != nil {
+		stderrStr := strings.TrimSpace(stderr.String())
+		if stderrStr != "" {
+			result.Error = stderrStr
+		} else {
+			result.Error = err.Error()
+		}
+		
+		e.logger.WithFields(logrus.Fields{
+			"error":  err,
+			"stderr": stderrStr,
+			"input":  input,
+		}).Error("sqlpp stdin command failed")
+	} else {
+		e.logger.WithFields(logrus.Fields{
+			"input":       input,
+			"output_size": len(result.Output),
+		}).Debug("sqlpp stdin command succeeded")
 	}
 
 	return result, nil

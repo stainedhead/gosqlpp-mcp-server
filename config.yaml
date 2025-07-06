@@ -2,7 +2,7 @@
 
 server:
   # Transport mode: "stdio" for direct MCP client communication, "http" for HTTP+SSE
-  transport: "stdio"
+  transport: "http"
   # HTTP server configuration (only used when transport is "http")
   host: "localhost"
   port: 8080
@@ -10,7 +10,7 @@ server:
 sqlpp:
   # Path to the sqlpp executable
   # Can be absolute path or command name if in PATH
-  executable_path: "sqlpp"
+  executable_path: "../gosqlpp/sqlpp"
   # Timeout for sqlpp operations in seconds
   timeout: 300
 

@@ -18,15 +18,17 @@ A Model Context Protocol (MCP) server that provides access to the [sqlpp](https:
 The server acts as a bridge between MCP clients and the sqlpp CLI tool:
 
 ```
-MCP Client → gosqlpp-mcp-server → sqlpp CLI → Database
+MCP Client → gosqlpp-mcp-server → sqlpp CLI (via stdin) → Database
 ```
 
 ### Key Components
 
 - **MCP Server**: Handles protocol communication and tool registration
 - **Tool Handler**: Manages tool execution and parameter validation
-- **sqlpp Executor**: Wraps sqlpp CLI execution with proper error handling
+- **sqlpp Executor**: Wraps sqlpp CLI execution using stdin interface with proper error handling
 - **Configuration System**: Flexible configuration via files, environment variables, and CLI flags
+
+**Important**: All SQL commands and schema queries are sent to sqlpp via stdin using the `--stdin` flag. The sqlpp CLI does not accept SQL commands as direct command-line arguments.
 
 ## Installation
 
@@ -34,6 +36,9 @@ MCP Client → gosqlpp-mcp-server → sqlpp CLI → Database
 
 - Go 1.21 or later
 - [sqlpp](https://github.com/stainedhead/gosqlpp) CLI tool installed and configured
+  - **Required**: sqlpp version that supports `--stdin` flag and schema commands (`@schema-*`)
+  - **Verify**: Run `sqlpp --help` to ensure `--stdin` flag is available
+  - **Test**: Verify schema commands work: `echo "@drivers" | sqlpp --stdin`
 - Docker (for containerized deployment)
 - AWS CLI and CDK (for AWS deployment)
 
@@ -129,6 +134,18 @@ Common options:
 ## MCP Tools
 
 The server provides the following MCP tools:
+
+**Note**: All tools internally use sqlpp's `--stdin` interface to send commands. Schema commands like `@schema-tables` and SQL statements are sent as input via stdin to the sqlpp process.
+
+### Schema Commands Reference
+
+The following schema commands are supported (sent via stdin to sqlpp):
+- `@drivers` - List all available database drivers
+- `@schema-tables [filter]` - List database tables
+- `@schema-views [filter]` - List database views
+- `@schema-procedures [filter]` - List stored procedures
+- `@schema-functions [filter]` - List functions
+- `@schema-all [filter]` - Show all schema information
 
 ### Schema Tools
 
@@ -355,20 +372,48 @@ When deployed to AWS App Runner, logs are automatically sent to CloudWatch with:
 
 ### Common Issues
 
-1. **sqlpp not found**
+1. **"Error: unknown flag: --command"**
+   - **Cause**: This error indicates an older version of the MCP server that incorrectly tried to use a non-existent `--command` flag
+   - **Solution**: Ensure you're using the latest version of gosqlpp-mcp-server. The server should use stdin to send commands to sqlpp
+   - **Verification**: Check that your server version includes the stdin-based implementation
+
+2. **"failed to open file @schema-tables"**
+   - **Cause**: Schema commands are being treated as file paths instead of special commands
+   - **Solution**: Ensure schema commands are sent via stdin, not as command-line arguments
+   - **Verification**: Schema commands should work when sent as input to `sqlpp --stdin`
+
+3. **sqlpp not found**
    - Ensure sqlpp is installed and in PATH
    - Check `executable_path` configuration
    - Verify permissions
 
-2. **Connection timeout**
+4. **Connection timeout**
    - Increase `timeout` configuration
    - Check database connectivity
    - Review sqlpp connection configuration
 
-3. **Permission denied**
+5. **Permission denied**
    - Check file permissions on sqlpp executable
    - Verify user permissions for database access
    - Review container user configuration
+
+### Testing sqlpp Integration
+
+Before using the MCP server, verify sqlpp works correctly:
+
+```bash
+# Test basic connectivity
+sqlpp --list-connections
+
+# Test SQL execution
+echo "SELECT 1 as test;" | sqlpp --stdin --connection main
+
+# Test schema commands
+echo "@schema-tables" | sqlpp --stdin --connection main
+
+# Test with output formatting
+echo "SELECT 'Hello World' as message;" | sqlpp --stdin --connection main --output table
+```
 
 ### Debug Mode
 

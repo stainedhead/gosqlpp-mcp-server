@@ -1,0 +1,14 @@
+# Minimal sqlpp configuration to enable driver listing
+# This is a temporary config to allow the MCP server to query available drivers
+
+connections:
+  # Dummy connection to satisfy sqlpp's requirement for at least one connection
+  dummy:
+    driver: "sqlite3"
+    dsn: ":memory:"
+    description: "Temporary in-memory SQLite database for driver enumeration"
+
+# Global settings
+settings:
+  output_format: "json"
+  end_on_error: true
