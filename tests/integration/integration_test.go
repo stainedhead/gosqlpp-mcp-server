@@ -8,24 +8,24 @@ import (
 	"time"
 
 	"github.com/sirupsen/logrus"
-	"github.com/stretchr/testify/assert"
-	"github.com/stretchr/testify/require"
 	"github.com/stainedhead/gosqlpp-mcp-server/internal/config"
 	"github.com/stainedhead/gosqlpp-mcp-server/internal/server"
 	"github.com/stainedhead/gosqlpp-mcp-server/internal/sqlpp"
+	"github.com/stretchr/testify/assert"
+	"github.com/stretchr/testify/require"
 )
 
 func TestServerCreation(t *testing.T) {
 	// Create a temporary directory for test
 	tmpDir := t.TempDir()
-	
+
 	// Create a mock sqlpp executable
 	mockSqlpp := filepath.Join(tmpDir, "mock-sqlpp")
 	mockScript := `#!/bin/bash
 echo "sqlpp help information"
 exit 0
 `
-	
+
 	err := os.WriteFile(mockSqlpp, []byte(mockScript), 0755)
 	require.NoError(t, err)
 
@@ -62,7 +62,7 @@ exit 0
 func TestSqlppExecutor(t *testing.T) {
 	// Create a temporary directory for test
 	tmpDir := t.TempDir()
-	
+
 	// Create a mock sqlpp executable
 	mockSqlpp := filepath.Join(tmpDir, "mock-sqlpp")
 	mockScript := `#!/bin/bash
@@ -73,11 +73,21 @@ case "$1" in
     "--list-connections")
         echo '["conn1", "conn2"]'
         ;;
-    "@drivers")
-        echo '["mysql", "postgresql"]'
-        ;;
-    "@schema-tables")
-        echo '{"tables": ["table1", "table2"]}'
+    "--stdin")
+        # Read from stdin and respond based on content
+        input=$(cat)
+        case "$input" in
+            "@drivers")
+                echo '["mysql", "postgresql"]'
+                ;;
+            "@schema-tables"*)
+                echo '{"tables": ["table1", "table2"]}'
+                ;;
+            *)
+                echo "Unknown stdin command: $input"
+                exit 1
+                ;;
+        esac
         ;;
     *)
         echo "Unknown command: $@"
@@ -85,7 +95,7 @@ case "$1" in
         ;;
 esac
 `
-	
+
 	err := os.WriteFile(mockSqlpp, []byte(mockScript), 0755)
 	require.NoError(t, err)
 
@@ -126,14 +136,14 @@ func TestServerStartupShutdown(t *testing.T) {
 
 	// Create a temporary directory for test
 	tmpDir := t.TempDir()
-	
+
 	// Create a mock sqlpp executable
 	mockSqlpp := filepath.Join(tmpDir, "mock-sqlpp")
 	mockScript := `#!/bin/bash
 echo "sqlpp help information"
 exit 0
 `
-	
+
 	err := os.WriteFile(mockSqlpp, []byte(mockScript), 0755)
 	require.NoError(t, err)
 
