@@ -1,4 +1,4 @@
-# gosqlpp MCP Server
+# mcp_sqlpp
 
 A Model Context Protocol (MCP) server that provides access to the [sqlpp](https://github.com/stainedhead/gosqlpp) database CLI tool through standardized tool interfaces. This enables AI development tools and agents to interact with databases through a secure, controlled interface.
 
@@ -18,7 +18,7 @@ A Model Context Protocol (MCP) server that provides access to the [sqlpp](https:
 The server acts as a bridge between MCP clients and the sqlpp CLI tool:
 
 ```
-MCP Client → gosqlpp-mcp-server → sqlpp CLI (via stdin) → Database
+MCP Client → mcp_sqlpp → sqlpp CLI (via stdin) → Database
 ```
 
 ### Key Components
@@ -46,8 +46,8 @@ MCP Client → gosqlpp-mcp-server → sqlpp CLI (via stdin) → Database
 
 1. Clone the repository:
 ```bash
-git clone https://github.com/stainedhead/gosqlpp-mcp-server.git
-cd gosqlpp-mcp-server
+git clone https://github.com/stainedhead/mcp_sqlpp.git
+cd mcp_sqlpp
 ```
 
 2. Install dependencies:
@@ -149,7 +149,7 @@ The following schema commands are supported (sent via stdin to sqlpp):
 
 ### Schema Tools
 
-#### `schema_all`
+#### `list_schema_all`
 Retrieve all schema information (tables, views, procedures, functions).
 
 **Parameters:**
@@ -157,25 +157,25 @@ Retrieve all schema information (tables, views, procedures, functions).
 - `filter` (optional): Filter pattern for results
 - `output` (optional): Output format (json, table, csv)
 
-#### `schema_tables`
+#### `list_schema_tables`
 Retrieve table schema information.
 
-**Parameters:** Same as `schema_all`
+**Parameters:** Same as `list_schema_all`
 
-#### `schema_views`
+#### `list_schema_views`
 Retrieve view schema information.
 
-**Parameters:** Same as `schema_all`
+**Parameters:** Same as `list_schema_all`
 
-#### `schema_procedures`
+#### `list_schema_procedures`
 Retrieve stored procedure schema information.
 
-**Parameters:** Same as `schema_all`
+**Parameters:** Same as `list_schema_all`
 
-#### `schema_functions`
+#### `list_schema_functions`
 Retrieve function schema information.
 
-**Parameters:** Same as `schema_all`
+**Parameters:** Same as `list_schema_all`
 
 ### Connection Management
 
@@ -196,7 +196,7 @@ Execute SQL commands against the database.
 
 ### Driver Information
 
-#### `drivers`
+#### `list_drivers`
 List all available database drivers.
 
 **Parameters:** None

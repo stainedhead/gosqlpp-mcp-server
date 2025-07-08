@@ -27,9 +27,9 @@ func main() {
 }
 
 var rootCmd = &cobra.Command{
-	Use:   "gosqlpp-mcp-server",
+	Use:   "mcp_sqlpp",
 	Short: "MCP server for sqlpp database CLI tool",
-	Long: `gosqlpp-mcp-server is a Model Context Protocol (MCP) server that provides
+	Long: `mcp_sqlpp is a Model Context Protocol (MCP) server that provides
 access to the sqlpp database CLI tool through standardized tool interfaces.
 
 It supports both STDIO and HTTP+SSE transports for flexible integration
@@ -68,7 +68,7 @@ func runServer(cmd *cobra.Command, args []string) error {
 
 	// Setup logger
 	logger := logrus.New()
-	
+
 	// Set log level
 	level, err := logrus.ParseLevel(cfg.Log.Level)
 	if err != nil {
@@ -87,11 +87,11 @@ func runServer(cmd *cobra.Command, args []string) error {
 
 	// Log startup information
 	logger.WithFields(logrus.Fields{
-		"version":   "1.0.0",
-		"transport": cfg.Server.Transport,
-		"log_level": cfg.Log.Level,
+		"version":    "1.0.0",
+		"transport":  cfg.Server.Transport,
+		"log_level":  cfg.Log.Level,
 		"sqlpp_path": cfg.Sqlpp.ExecutablePath,
-	}).Info("Starting gosqlpp MCP server")
+	}).Info("Starting mcp_sqlpp MCP server")
 
 	// Create and run server
 	srv, err := server.New(cfg, logger)

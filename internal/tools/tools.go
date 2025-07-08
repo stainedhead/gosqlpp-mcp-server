@@ -52,21 +52,21 @@ func (h *ToolHandler) ExecuteTool(name string, arguments map[string]interface{})
 	}).Debug("Executing tool")
 
 	switch name {
-	case "schema_all":
+	case "list_schema_all":
 		return h.executeSchemaCommand("all", arguments)
-	case "schema_tables":
+	case "list_schema_tables":
 		return h.executeSchemaCommand("tables", arguments)
-	case "schema_views":
+	case "list_schema_views":
 		return h.executeSchemaCommand("views", arguments)
-	case "schema_procedures":
+	case "list_schema_procedures":
 		return h.executeSchemaCommand("procedures", arguments)
-	case "schema_functions":
+	case "list_schema_functions":
 		return h.executeSchemaCommand("functions", arguments)
 	case "list_connections":
 		return h.executeListConnections(arguments)
 	case "execute_sql_command":
 		return h.executeSQL(arguments)
-	case "drivers":
+	case "list_drivers":
 		return h.executeDrivers(arguments)
 	default:
 		return "", fmt.Errorf("unknown tool: %s", name)
@@ -77,7 +77,7 @@ func (h *ToolHandler) ExecuteTool(name string, arguments map[string]interface{})
 func (h *ToolHandler) createSchemaAllTool() Tool {
 	schema := h.createSchemaToolSchema()
 	return Tool{
-		Name:        "schema_all",
+		Name:        "list_schema_all",
 		Description: "Retrieve all schema information (tables, views, procedures, functions) from the database",
 		InputSchema: &schema,
 	}
@@ -86,7 +86,7 @@ func (h *ToolHandler) createSchemaAllTool() Tool {
 func (h *ToolHandler) createSchemaTablesTool() Tool {
 	schema := h.createSchemaToolSchema()
 	return Tool{
-		Name:        "schema_tables",
+		Name:        "list_schema_tables",
 		Description: "Retrieve table schema information from the database",
 		InputSchema: &schema,
 	}
@@ -95,7 +95,7 @@ func (h *ToolHandler) createSchemaTablesTool() Tool {
 func (h *ToolHandler) createSchemaViewsTool() Tool {
 	schema := h.createSchemaToolSchema()
 	return Tool{
-		Name:        "schema_views",
+		Name:        "list_schema_views",
 		Description: "Retrieve view schema information from the database",
 		InputSchema: &schema,
 	}
@@ -104,7 +104,7 @@ func (h *ToolHandler) createSchemaViewsTool() Tool {
 func (h *ToolHandler) createSchemaProceduresTool() Tool {
 	schema := h.createSchemaToolSchema()
 	return Tool{
-		Name:        "schema_procedures",
+		Name:        "list_schema_procedures",
 		Description: "Retrieve stored procedure schema information from the database",
 		InputSchema: &schema,
 	}
@@ -113,7 +113,7 @@ func (h *ToolHandler) createSchemaProceduresTool() Tool {
 func (h *ToolHandler) createSchemaFunctionsTool() Tool {
 	schema := h.createSchemaToolSchema()
 	return Tool{
-		Name:        "schema_functions",
+		Name:        "list_schema_functions",
 		Description: "Retrieve function schema information from the database",
 		InputSchema: &schema,
 	}
@@ -187,7 +187,7 @@ func (h *ToolHandler) createDriversTool() Tool {
 		Properties: map[string]*jsonschema.Schema{},
 	}
 	return Tool{
-		Name:        "drivers",
+		Name:        "list_drivers",
 		Description: "List all available database drivers",
 		InputSchema: &schema,
 	}

@@ -4,7 +4,16 @@ import (
 	"testing"
 
 	"github.com/sirupsen/logrus"
-	"github.com/stainedhead/gosqlpp-mcp-server/internal/sqlpp"
+	"git	expectedTools := []string{
+		"list_schema_all",
+		"list_schema_tables", 
+		"list_schema_views",
+		"list_schema_procedures",
+		"list_schema_functions",
+		"list_connections",
+		"execute_sql_command",
+		"list_drivers",
+	}ainedhead/gosqlpp-mcp-server/internal/sqlpp"
 	"github.com/stainedhead/gosqlpp-mcp-server/pkg/types"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/mock"
@@ -70,14 +79,14 @@ func TestGetTools(t *testing.T) {
 	}
 
 	expectedTools := []string{
-		"schema_all",
-		"schema_tables",
-		"schema_views",
-		"schema_procedures",
-		"schema_functions",
+		"list_schema_all",
+		"list_schema_tables",
+		"list_schema_views",
+		"list_schema_procedures",
+		"list_schema_functions",
 		"list_connections",
 		"execute_sql_command",
-		"drivers",
+		"list_drivers",
 	}
 
 	for _, expected := range expectedTools {
@@ -103,7 +112,7 @@ func TestExecuteTool_SchemaCommand_Success(t *testing.T) {
 		"output":     "json",
 	}
 
-	result, err := handler.ExecuteTool("schema_tables", arguments)
+	result, err := handler.ExecuteTool("list_schema_tables", arguments)
 	require.NoError(t, err)
 	assert.Contains(t, result, "table1")
 
@@ -120,7 +129,7 @@ func TestExecuteTool_SchemaCommand_MissingConnection(t *testing.T) {
 		"output": "json",
 	}
 
-	result, err := handler.ExecuteTool("schema_tables", arguments)
+	result, err := handler.ExecuteTool("list_schema_tables", arguments)
 	require.Error(t, err)
 	assert.Empty(t, result)
 	assert.Contains(t, err.Error(), "connection parameter is required")
@@ -210,7 +219,7 @@ func TestExecuteTool_ListDrivers_Success(t *testing.T) {
 
 	mockExecutor.On("ListDrivers").Return(expectedResult, nil)
 
-	result, err := handler.ExecuteTool("drivers", map[string]interface{}{})
+	result, err := handler.ExecuteTool("list_drivers", map[string]interface{}{})
 	require.NoError(t, err)
 	assert.Contains(t, result, "mysql")
 

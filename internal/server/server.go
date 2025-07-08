@@ -39,7 +39,7 @@ func New(cfg *config.Config, logger *logrus.Logger) (*Server, error) {
 	toolHandler := tools.NewToolHandler(executor, logger)
 
 	// Create MCP server
-	mcpServer := mcp.NewServer("gosqlpp-mcp-server", "1.0.0", &mcp.ServerOptions{})
+	mcpServer := mcp.NewServer("mcp_sqlpp", "1.0.0", &mcp.ServerOptions{})
 
 	// Register tools
 	for _, tool := range toolHandler.GetTools() {
@@ -60,7 +60,7 @@ func New(cfg *config.Config, logger *logrus.Logger) (*Server, error) {
 				},
 			}, nil
 		})
-		
+
 		serverTool := &mcp.ServerTool{
 			Tool: &mcp.Tool{
 				Name:        toolName,
@@ -158,17 +158,17 @@ func (s *Server) runHTTP(ctx context.Context) error {
 	select {
 	case <-ctx.Done():
 		s.logger.Info("Shutting down HTTP server")
-		
+
 		// Create shutdown context with timeout
 		shutdownCtx, shutdownCancel := context.WithTimeout(context.Background(), 30*time.Second)
 		defer shutdownCancel()
-		
+
 		// Graceful shutdown
 		if err := httpServer.Shutdown(shutdownCtx); err != nil {
 			s.logger.WithError(err).Error("Error during HTTP server shutdown")
 			return err
 		}
-		
+
 		return ctx.Err()
 	case err := <-errChan:
 		if err != nil && err != http.ErrServerClosed {
