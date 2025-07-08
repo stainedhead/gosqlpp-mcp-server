@@ -4,16 +4,7 @@ import (
 	"testing"
 
 	"github.com/sirupsen/logrus"
-	"git	expectedTools := []string{
-		"list_schema_all",
-		"list_schema_tables", 
-		"list_schema_views",
-		"list_schema_procedures",
-		"list_schema_functions",
-		"list_connections",
-		"execute_sql_command",
-		"list_drivers",
-	}ainedhead/gosqlpp-mcp-server/internal/sqlpp"
+	"github.com/stainedhead/gosqlpp-mcp-server/internal/sqlpp"
 	"github.com/stainedhead/gosqlpp-mcp-server/pkg/types"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/mock"
