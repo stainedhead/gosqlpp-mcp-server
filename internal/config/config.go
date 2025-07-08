@@ -184,7 +184,7 @@ func (c *SqlppConfig) resolvePath(path string) string {
 	}
 
 	binaryDir := filepath.Dir(binaryPath)
-	
+
 	// Resolve the path relative to the binary directory
 	return filepath.Join(binaryDir, path)
 }

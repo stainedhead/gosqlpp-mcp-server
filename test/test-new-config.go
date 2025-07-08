@@ -29,7 +29,7 @@ func main() {
 	fmt.Println("Test 1: Relative path resolution")
 	testDir := "test-bin"
 	fullTestDir := filepath.Join(binaryDir, testDir)
-	
+
 	err = os.MkdirAll(fullTestDir, 0755)
 	if err != nil {
 		log.Fatal(err)
@@ -57,12 +57,12 @@ func main() {
 	fmt.Printf("  Configuration executable_path: %s\n", cfg.Sqlpp.ExecutablePath)
 	fmt.Printf("  Resolved executable path: %s\n", execPath)
 	fmt.Printf("  Expected path: %s\n", sqlppPath)
-	
+
 	// Verify the file exists
 	if _, err := os.Stat(execPath); err != nil {
 		log.Fatalf("  ❌ Sqlpp executable not found at %s: %v", execPath, err)
 	}
-	
+
 	if execPath == sqlppPath {
 		fmt.Println("  ✓ Relative path resolved correctly relative to binary directory!")
 	} else {
@@ -87,7 +87,7 @@ func main() {
 	fmt.Printf("  Configuration executable_path: %s\n", cfg2.Sqlpp.ExecutablePath)
 	fmt.Printf("  Resolved executable path: %s\n", execPath2)
 	fmt.Printf("  Expected path: %s\n", expectedAbsolute)
-	
+
 	if execPath2 == expectedAbsolute {
 		fmt.Println("  ✓ Absolute path preserved correctly!")
 	} else {
@@ -110,7 +110,7 @@ func main() {
 	fmt.Printf("  Configuration executable_path: '%s' (empty, using default)\n", cfg3.Sqlpp.ExecutablePath)
 	fmt.Printf("  Resolved executable path: %s\n", execPath3)
 	fmt.Printf("  Expected path: %s\n", expectedDefault)
-	
+
 	if execPath3 == expectedDefault {
 		fmt.Println("  ✓ Default path resolved correctly relative to binary directory!")
 	} else {

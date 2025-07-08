@@ -50,11 +50,11 @@ func SetupFileLogging(logger *logrus.Logger, enabled bool) error {
 	})
 
 	logger.WithFields(logrus.Fields{
-		"log_file":      logPath,
-		"logs_dir":      logsDir,
-		"max_size_mb":   100,
-		"max_backups":   10,
-		"max_age_days":  30,
+		"log_file":     logPath,
+		"logs_dir":     logsDir,
+		"max_size_mb":  100,
+		"max_backups":  10,
+		"max_age_days": 30,
 	}).Info("File logging enabled")
 
 	return nil
