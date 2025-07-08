@@ -1,7 +1,16 @@
 #!/bin/bash
 
 # Manual test script for gosqlpp MCP server
+# This script should be run from the project root directory
+
 set -e
+
+# Change to project root if not already there
+if [ ! -f "go.mod" ]; then
+    echo "Error: This script must be run from the project root directory"
+    echo "Usage: ./test/scripts/test-manual.sh"
+    exit 1
+fi
 
 echo "=== Manual Test Script for gosqlpp MCP Server ==="
 

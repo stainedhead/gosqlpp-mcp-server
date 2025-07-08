@@ -584,3 +584,61 @@ For issues and questions:
   - [MCP_TESTING.md](documentation/MCP_TESTING.md) - MCP protocol testing and troubleshooting
   - [SQLPP_INTEGRATION.md](documentation/SQLPP_INTEGRATION.md) - sqlpp setup and integration details
 - Review sqlpp documentation for database-specific issues
+
+## Testing
+
+The project includes comprehensive testing infrastructure organized in the `test/` directory:
+
+```
+test/
+├── README.md                          # Detailed testing documentation
+├── config/                            # Test configuration files
+├── data/                              # Test data and MCP command files
+├── scripts/                           # Test scripts
+└── test-new-config.go                 # Configuration testing program
+```
+
+### Running Tests
+
+```bash
+# Run all unit and integration tests
+make test
+
+# Run with coverage report
+make test-coverage
+
+# Run specific test categories
+go test ./internal/config/...          # Configuration tests
+go test ./internal/tools/...           # Tool tests
+go test ./tests/integration/...        # Integration tests
+```
+
+### Manual Testing Scripts
+
+Several manual testing scripts are available in the `test/scripts/` directory:
+
+```bash
+# Comprehensive manual testing
+./test/scripts/test-manual.sh
+
+# File logging tests
+./test/scripts/test-file-logging.sh
+./test/scripts/test-file-logging-tools.sh
+./test/scripts/test-simple-logging.sh
+```
+
+All test scripts should be run from the project root directory.
+
+### Test Configuration
+
+Use test-specific configurations for different scenarios:
+
+```bash
+# Test with file logging enabled
+./mcp_sqlpp --config test/config/test-config-file-logging.yaml
+
+# Test with MCP command files
+cat test/data/test-mcp-commands.json | ./mcp_sqlpp --transport stdio
+```
+
+For detailed testing information, see [test/README.md](test/README.md).

@@ -17,14 +17,14 @@ Updated the gosqlpp MCP server to expect the sqlpp executable in a directory spe
 
 ### 3. Configuration Files
 - **UPDATED**: `config.yaml` - Changed default and added clarifying comments
-- **UPDATED**: `test-config-file-logging.yaml` - Updated to use directory path
+- **UPDATED**: `test/config/test-config-file-logging.yaml` - Updated to use directory path and moved to test directory
 
 ### 4. Tests
 - **UPDATED**: `internal/config/config_test.go` - Added tests for new default and `GetSqlppExecutablePath()` method
 - **UPDATED**: `tests/integration/integration_test.go` - Updated to create mock executable in directory structure
 
 ### 5. Scripts
-- **UPDATED**: `scripts/test-manual.sh` - Modified to create mock sqlpp in `mock-bin/` directory
+- **UPDATED**: `test/scripts/test-manual.sh` - Modified to create mock sqlpp in `mock-bin/` directory and moved to test directory
 
 ### 6. Documentation
 - **UPDATED**: `README.md` - Updated configuration examples and environment variable examples
@@ -57,3 +57,23 @@ This is a breaking change. Users will need to update their configuration:
 
 ## Testing
 All unit tests and integration tests have been updated to work with the new configuration structure.
+
+## Test Directory Reorganization
+
+As part of cleaning up the project structure, all test-related files have been moved to a dedicated `test/` directory:
+
+### Moved Files
+- `test-config-file-logging.yaml` → `test/config/test-config-file-logging.yaml`
+- `test-file-logging.sh` → `test/scripts/test-file-logging.sh`
+- `test-file-logging-tools.sh` → `test/scripts/test-file-logging-tools.sh`
+- `test-simple-logging.sh` → `test/scripts/test-simple-logging.sh`
+- `test-manual.sh` → `test/scripts/test-manual.sh`
+- `test-mcp-commands.json` → `test/data/test-mcp-commands.json`
+- `final-test.json` → `test/data/final-test.json`
+- `test-new-config.go` → `test/test-new-config.go`
+- `test.db` → `test/data/test.db` (if present)
+
+### Updated Script Behavior
+- All test scripts now check that they're being run from the project root directory
+- Test configuration files have been updated with correct relative paths
+- A comprehensive `test/README.md` documents the new test structure

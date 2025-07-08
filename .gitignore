@@ -81,3 +81,9 @@ yarn-error.log*
 # Temporary files
 tmp/
 temp/
+
+# Test directory temporary files
+test/test-bin/
+test/mock-bin/
+test/tmp/
+test/*.tmp

@@ -1,6 +1,15 @@
 #!/bin/bash
 
 # Test file logging functionality
+# This script should be run from the project root directory
+
+# Change to project root if not already there
+if [ ! -f "mcp_sqlpp" ] && [ ! -f "go.mod" ]; then
+    echo "Error: This script must be run from the project root directory"
+    echo "Usage: ./test/scripts/test-file-logging.sh"
+    exit 1
+fi
+
 echo "Testing file logging functionality..."
 
 # Remove any existing logs
