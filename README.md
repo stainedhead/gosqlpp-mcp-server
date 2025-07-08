@@ -149,7 +149,7 @@ The following schema commands are supported (sent via stdin to sqlpp):
 
 ### Schema Tools
 
-#### `schema-all`
+#### `schema_all`
 Retrieve all schema information (tables, views, procedures, functions).
 
 **Parameters:**
@@ -157,36 +157,36 @@ Retrieve all schema information (tables, views, procedures, functions).
 - `filter` (optional): Filter pattern for results
 - `output` (optional): Output format (json, table, csv)
 
-#### `schema-tables`
+#### `schema_tables`
 Retrieve table schema information.
 
-**Parameters:** Same as `schema-all`
+**Parameters:** Same as `schema_all`
 
-#### `schema-views`
+#### `schema_views`
 Retrieve view schema information.
 
-**Parameters:** Same as `schema-all`
+**Parameters:** Same as `schema_all`
 
-#### `schema-procedures`
+#### `schema_procedures`
 Retrieve stored procedure schema information.
 
-**Parameters:** Same as `schema-all`
+**Parameters:** Same as `schema_all`
 
-#### `schema-functions`
+#### `schema_functions`
 Retrieve function schema information.
 
-**Parameters:** Same as `schema-all`
+**Parameters:** Same as `schema_all`
 
 ### Connection Management
 
-#### `list-connections`
+#### `list_connections`
 List all available database connections.
 
 **Parameters:** None
 
 ### SQL Execution
 
-#### `execute-sql-command`
+#### `execute_sql_command`
 Execute SQL commands against the database.
 
 **Parameters:**
