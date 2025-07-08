@@ -202,3 +202,22 @@ echo "No arguments provided"
 	assert.True(t, result.Success)
 	assert.Contains(t, result.Output, "No arguments provided")
 }
+
+func TestTruncateForLogging(t *testing.T) {
+	// Test short output (no truncation)
+	shortOutput := "short output"
+	result := truncateForLogging(shortOutput)
+	assert.Equal(t, shortOutput, result)
+
+	// Test long output (truncation)
+	longOutput := make([]byte, 600)
+	for i := range longOutput {
+		longOutput[i] = 'B'
+	}
+	longOutputStr := string(longOutput)
+
+	result = truncateForLogging(longOutputStr)
+	assert.True(t, len(result) < len(longOutputStr))
+	assert.Contains(t, result, "... (truncated)")
+	assert.Equal(t, 500+len("... (truncated)"), len(result))
+}

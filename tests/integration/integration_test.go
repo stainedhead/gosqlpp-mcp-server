@@ -199,3 +199,58 @@ exit 0
 		t.Fatal("Server did not stop within timeout")
 	}
 }
+
+func TestListConnectionsIntegration(t *testing.T) {
+	// Create a temporary directory for test
+	tmpDir := t.TempDir()
+
+	// Create a mock sqlpp executable that returns realistic connection data
+	mockSqlpp := filepath.Join(tmpDir, "mock-sqlpp")
+	mockScript := `#!/bin/bash
+if [[ "$1" == "--help" ]]; then
+	echo "sqlpp help information"
+	exit 0
+elif [[ "$1" == "--list-connections" ]]; then
+	echo '[
+		{"name": "main", "driver": "sqlite3", "notes": "Local SQLite database for testing", "is_default": true},
+		{"name": "mysql", "driver": "mysql", "notes": "MySQL production database", "is_default": false},
+		{"name": "postgres", "driver": "postgres", "notes": "PostgreSQL development database", "is_default": false}
+	]'
+	exit 0
+fi
+echo "Unknown command: $@"
+exit 1
+`
+
+	err := os.WriteFile(mockSqlpp, []byte(mockScript), 0755)
+	require.NoError(t, err)
+
+	// Create executor and test list connections
+	logger := logrus.New()
+	logger.SetLevel(logrus.ErrorLevel) // Reduce noise during tests
+
+	executor := sqlpp.NewExecutor(mockSqlpp, 30, logger)
+
+	// Validate executable first
+	err = executor.ValidateExecutable()
+	require.NoError(t, err)
+
+	// Test list connections
+	result, err := executor.ListConnections()
+	require.NoError(t, err)
+	require.NotNil(t, result)
+	assert.True(t, result.Success)
+
+	// Verify we have connection data
+	assert.Contains(t, result.Output, "main")
+	assert.Contains(t, result.Output, "mysql")
+	assert.Contains(t, result.Output, "postgres")
+
+	// Verify at least one connection is marked as default
+	assert.Contains(t, result.Output, `"is_default": true`)
+
+	// Verify the output is valid JSON with expected structure
+	assert.Contains(t, result.Output, `"name": "main"`)
+	assert.Contains(t, result.Output, `"driver": "sqlite3"`)
+	assert.Contains(t, result.Output, `"notes": "Local SQLite database for testing"`)
+}

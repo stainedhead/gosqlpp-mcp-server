@@ -12,6 +12,19 @@ import (
 	"github.com/stainedhead/gosqlpp-mcp-server/pkg/types"
 )
 
+const (
+	// MaxLogOutputLength is the maximum length of output to include in logs
+	MaxLogOutputLength = 500
+)
+
+// truncateForLogging truncates output for logging purposes to avoid overwhelming logs
+func truncateForLogging(output string) string {
+	if len(output) <= MaxLogOutputLength {
+		return output
+	}
+	return output[:MaxLogOutputLength] + "... (truncated)"
+}
+
 // Executor handles execution of sqlpp commands
 type Executor struct {
 	executablePath string
@@ -35,7 +48,7 @@ func (e *Executor) ExecuteSchemaCommand(schemaType, connection, filter, output s
 	if filter != "" {
 		schemaCommand = fmt.Sprintf("%s %s", schemaCommand, filter)
 	}
-	
+
 	return e.executeStdinCommandWithOptions(schemaCommand, connection, output)
 }
 
@@ -69,7 +82,7 @@ func (e *Executor) executeCommand(args []string) (*types.SqlppResult, error) {
 
 	// Create command
 	cmd := exec.CommandContext(ctx, e.executablePath, args...)
-	
+
 	// Capture stdout and stderr
 	var stdout, stderr bytes.Buffer
 	cmd.Stdout = &stdout
@@ -77,7 +90,7 @@ func (e *Executor) executeCommand(args []string) (*types.SqlppResult, error) {
 
 	// Execute command
 	err := cmd.Run()
-	
+
 	result := &types.SqlppResult{
 		Success: err == nil,
 		Output:  strings.TrimSpace(stdout.String()),
@@ -90,7 +103,7 @@ func (e *Executor) executeCommand(args []string) (*types.SqlppResult, error) {
 		} else {
 			result.Error = err.Error()
 		}
-		
+
 		e.logger.WithFields(logrus.Fields{
 			"error":  err,
 			"stderr": stderrStr,
@@ -101,6 +114,14 @@ func (e *Executor) executeCommand(args []string) (*types.SqlppResult, error) {
 			"args":        args,
 			"output_size": len(result.Output),
 		}).Debug("sqlpp command succeeded")
+
+		// Log truncated output at TRACE level for detailed debugging
+		if e.logger.Level <= logrus.TraceLevel {
+			e.logger.WithFields(logrus.Fields{
+				"args":           args,
+				"output_preview": truncateForLogging(result.Output),
+			}).Trace("sqlpp command output preview")
+		}
 	}
 
 	return result, nil
@@ -109,11 +130,11 @@ func (e *Executor) executeCommand(args []string) (*types.SqlppResult, error) {
 // executeStdinCommandWithOptions executes a sqlpp command by sending input via stdin with connection and output options
 func (e *Executor) executeStdinCommandWithOptions(input, connection, output string) (*types.SqlppResult, error) {
 	args := []string{"--stdin"}
-	
+
 	if connection != "" {
 		args = append(args, "--connection", connection)
 	}
-	
+
 	if output != "" {
 		args = append(args, "--output", output)
 	}
@@ -131,7 +152,7 @@ func (e *Executor) executeStdinCommandWithOptions(input, connection, output stri
 
 	// Create command with args
 	cmd := exec.CommandContext(ctx, e.executablePath, args...)
-	
+
 	// Set up stdin pipe
 	stdin, err := cmd.StdinPipe()
 	if err != nil {
@@ -157,7 +178,7 @@ func (e *Executor) executeStdinCommandWithOptions(input, connection, output stri
 
 	// Wait for command to complete
 	err = cmd.Wait()
-	
+
 	result := &types.SqlppResult{
 		Success: err == nil,
 		Output:  strings.TrimSpace(stdout.String()),
@@ -170,7 +191,7 @@ func (e *Executor) executeStdinCommandWithOptions(input, connection, output stri
 		} else {
 			result.Error = err.Error()
 		}
-		
+
 		e.logger.WithFields(logrus.Fields{
 			"error":  err,
 			"stderr": stderrStr,
@@ -183,6 +204,15 @@ func (e *Executor) executeStdinCommandWithOptions(input, connection, output stri
 			"input":       input,
 			"output_size": len(result.Output),
 		}).Debug("sqlpp stdin command with options succeeded")
+
+		// Log truncated output at TRACE level for detailed debugging
+		if e.logger.Level <= logrus.TraceLevel {
+			e.logger.WithFields(logrus.Fields{
+				"args":           args,
+				"input":          input,
+				"output_preview": truncateForLogging(result.Output),
+			}).Trace("sqlpp stdin command output preview")
+		}
 	}
 
 	return result, nil
@@ -202,7 +232,7 @@ func (e *Executor) executeStdinCommand(input string) (*types.SqlppResult, error)
 
 	// Create command with --stdin flag
 	cmd := exec.CommandContext(ctx, e.executablePath, "--stdin")
-	
+
 	// Set up stdin pipe
 	stdin, err := cmd.StdinPipe()
 	if err != nil {
@@ -228,7 +258,7 @@ func (e *Executor) executeStdinCommand(input string) (*types.SqlppResult, error)
 
 	// Wait for command to complete
 	err = cmd.Wait()
-	
+
 	result := &types.SqlppResult{
 		Success: err == nil,
 		Output:  strings.TrimSpace(stdout.String()),
@@ -241,7 +271,7 @@ func (e *Executor) executeStdinCommand(input string) (*types.SqlppResult, error)
 		} else {
 			result.Error = err.Error()
 		}
-		
+
 		e.logger.WithFields(logrus.Fields{
 			"error":  err,
 			"stderr": stderrStr,
@@ -252,6 +282,14 @@ func (e *Executor) executeStdinCommand(input string) (*types.SqlppResult, error)
 			"input":       input,
 			"output_size": len(result.Output),
 		}).Debug("sqlpp stdin command succeeded")
+
+		// Log truncated output at TRACE level for detailed debugging
+		if e.logger.Level <= logrus.TraceLevel {
+			e.logger.WithFields(logrus.Fields{
+				"input":          input,
+				"output_preview": truncateForLogging(result.Output),
+			}).Trace("sqlpp stdin command output preview")
+		}
 	}
 
 	return result, nil
@@ -260,7 +298,7 @@ func (e *Executor) executeStdinCommand(input string) (*types.SqlppResult, error)
 // ValidateExecutable checks if the sqlpp executable is available and working
 func (e *Executor) ValidateExecutable() error {
 	e.logger.WithField("executable", e.executablePath).Debug("Validating sqlpp executable")
-	
+
 	// Try to run sqlpp with --version or --help to check if it's available
 	ctx, cancel := context.WithTimeout(context.Background(), 10*time.Second)
 	defer cancel()

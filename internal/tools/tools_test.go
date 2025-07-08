@@ -179,21 +179,56 @@ func TestExecuteTool_ExecuteSQL_MissingParameters(t *testing.T) {
 	assert.Contains(t, err.Error(), "command parameter is required")
 }
 
-func TestExecuteTool_ListConnections_Success(t *testing.T) {
+func TestExecuteTool_ListConnections_WithDefaultConnection(t *testing.T) {
 	mockExecutor := &MockExecutor{}
 	logger := logrus.New()
 	handler := NewToolHandler(mockExecutor, logger)
 
+	// Mock realistic connection output with JSON format showing ConnectionInfo objects
 	expectedResult := &types.SqlppResult{
 		Success: true,
-		Output:  `["conn1", "conn2", "conn3"]`,
+		Output: `[
+			{"name": "main", "driver": "sqlite3", "notes": "Local SQLite database", "is_default": true},
+			{"name": "mysql", "driver": "mysql", "notes": "MySQL production database", "is_default": false},
+			{"name": "postgres", "driver": "postgres", "notes": "PostgreSQL dev database", "is_default": false}
+		]`,
 	}
 
 	mockExecutor.On("ListConnections").Return(expectedResult, nil)
 
 	result, err := handler.ExecuteTool("list_connections", map[string]interface{}{})
 	require.NoError(t, err)
-	assert.Contains(t, result, "conn1")
+
+	// Verify we have connections returned
+	assert.Contains(t, result, "main")
+	assert.Contains(t, result, "mysql")
+	assert.Contains(t, result, "postgres")
+
+	// Verify there's at least one connection marked as default
+	assert.Contains(t, result, `"is_default": true`)
+
+	// Verify the default connection is properly identified
+	assert.Contains(t, result, `"name": "main"`)
+
+	mockExecutor.AssertExpectations(t)
+}
+
+func TestExecuteTool_ListConnections_EmptyResult(t *testing.T) {
+	mockExecutor := &MockExecutor{}
+	logger := logrus.New()
+	handler := NewToolHandler(mockExecutor, logger)
+
+	// Test case where no connections are configured
+	expectedResult := &types.SqlppResult{
+		Success: true,
+		Output:  `[]`,
+	}
+
+	mockExecutor.On("ListConnections").Return(expectedResult, nil)
+
+	result, err := handler.ExecuteTool("list_connections", map[string]interface{}{})
+	require.NoError(t, err)
+	assert.Equal(t, "[]", result)
 
 	mockExecutor.AssertExpectations(t)
 }
@@ -288,4 +323,23 @@ func TestFormatResult(t *testing.T) {
 	// Test with plain text output
 	result = handler.formatResult("Plain text output")
 	assert.Equal(t, "Plain text output", result)
+}
+
+func TestTruncateForLogging(t *testing.T) {
+	// Test short output (no truncation)
+	shortOutput := "short output"
+	result := truncateForLogging(shortOutput)
+	assert.Equal(t, shortOutput, result)
+
+	// Test long output (truncation)
+	longOutput := make([]byte, 600)
+	for i := range longOutput {
+		longOutput[i] = 'A'
+	}
+	longOutputStr := string(longOutput)
+
+	result = truncateForLogging(longOutputStr)
+	assert.True(t, len(result) < len(longOutputStr))
+	assert.Contains(t, result, "... (truncated)")
+	assert.Equal(t, 500+len("... (truncated)"), len(result))
 }

@@ -9,6 +9,82 @@ The error you encountered:
 
 This happens because MCP requires a proper handshake sequence before tools can be called. You cannot directly call tools without first initializing the connection.
 
+## Testing Philosophy
+
+### Unit Tests
+The project includes comprehensive unit tests that verify:
+
+#### Tool Functionality Tests
+- **`list_connections` validation**: Ensures the tool returns at least one connection and properly identifies default connections
+- **Connection format verification**: Validates that connections include required fields (`name`, `driver`, `notes`, `is_default`)
+- **Empty result handling**: Tests behavior when no connections are configured
+- **Output truncation**: Tests the logging truncation function to ensure large outputs are properly handled
+
+#### Integration Tests  
+- **Real sqlpp integration**: Tests with mock sqlpp executables that return realistic data
+- **End-to-end validation**: Verifies the complete flow from tool call to sqlpp execution to result formatting
+
+### Logging Features
+
+The MCP server includes comprehensive logging with different levels of detail:
+
+#### Log Levels
+- **ERROR**: Full error details, stderr output, and failure context
+- **DEBUG**: Execution metadata including output sizes and parameters (default)
+- **TRACE**: Truncated output previews for detailed debugging (max 500 characters)
+
+#### What Gets Logged
+
+**sqlpp Executor Level:**
+- Command arguments and input parameters
+- Execution success/failure status
+- Output size (always logged)
+- Truncated output preview (TRACE level only)
+- Error details and stderr (on failure)
+
+**Tools Layer:**
+- Tool name and arguments
+- Execution result size
+- Truncated result preview (TRACE level only)
+- Error details (on failure)
+
+#### Security and Performance
+- **Output truncation**: Large outputs are truncated to 500 characters to prevent log flooding
+- **Sensitive data protection**: Full output only shown at TRACE level, which should be disabled in production
+- **Performance optimization**: Default DEBUG level shows only metadata, not content
+- **Configurable**: Log level can be set via command line or configuration
+
+#### Testing Logging
+Use the test script to see different logging levels:
+```bash
+# Test with detailed TRACE logging (shows output previews)
+./test-logging.sh
+
+# Or manually test different levels
+./mcp_sqlpp -t stdio --log-level trace  # Shows truncated output
+./mcp_sqlpp -t stdio --log-level debug  # Shows only sizes (default)
+./mcp_sqlpp -t stdio --log-level error  # Shows only errors
+```
+
+### New Connection Tests
+
+The following tests have been added to ensure `list_connections` works correctly:
+
+#### `TestExecuteTool_ListConnections_WithDefaultConnection`
+- Verifies that `list_connections` returns multiple connections
+- Ensures at least one connection is marked with `"is_default": true`
+- Validates the JSON structure includes all required fields
+- Tests realistic connection data with different drivers
+
+#### `TestExecuteTool_ListConnections_EmptyResult`
+- Tests behavior when no connections are configured
+- Ensures graceful handling of empty connection lists
+
+#### `TestListConnectionsIntegration`
+- Integration test with mock sqlpp executable
+- Validates real-world output format
+- Ensures the executable validation and connection listing work together
+
 ## Correct MCP Protocol Sequence
 
 MCP follows a specific initialization sequence:

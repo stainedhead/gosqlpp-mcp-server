@@ -9,6 +9,19 @@ import (
 	"github.com/stainedhead/gosqlpp-mcp-server/internal/sqlpp"
 )
 
+const (
+	// MaxLogOutputLength is the maximum length of output to include in tool logs
+	MaxLogOutputLength = 500
+)
+
+// truncateForLogging truncates output for logging purposes to avoid overwhelming logs
+func truncateForLogging(output string) string {
+	if len(output) <= MaxLogOutputLength {
+		return output
+	}
+	return output[:MaxLogOutputLength] + "... (truncated)"
+}
+
 // ToolHandler handles MCP tool execution
 type ToolHandler struct {
 	executor sqlpp.ExecutorInterface
@@ -51,26 +64,52 @@ func (h *ToolHandler) ExecuteTool(name string, arguments map[string]interface{})
 		"arguments": arguments,
 	}).Debug("Executing tool")
 
+	var result string
+	var err error
+
 	switch name {
 	case "list_schema_all":
-		return h.executeSchemaCommand("all", arguments)
+		result, err = h.executeSchemaCommand("all", arguments)
 	case "list_schema_tables":
-		return h.executeSchemaCommand("tables", arguments)
+		result, err = h.executeSchemaCommand("tables", arguments)
 	case "list_schema_views":
-		return h.executeSchemaCommand("views", arguments)
+		result, err = h.executeSchemaCommand("views", arguments)
 	case "list_schema_procedures":
-		return h.executeSchemaCommand("procedures", arguments)
+		result, err = h.executeSchemaCommand("procedures", arguments)
 	case "list_schema_functions":
-		return h.executeSchemaCommand("functions", arguments)
+		result, err = h.executeSchemaCommand("functions", arguments)
 	case "list_connections":
-		return h.executeListConnections(arguments)
+		result, err = h.executeListConnections(arguments)
 	case "execute_sql_command":
-		return h.executeSQL(arguments)
+		result, err = h.executeSQL(arguments)
 	case "list_drivers":
-		return h.executeDrivers(arguments)
+		result, err = h.executeDrivers(arguments)
 	default:
 		return "", fmt.Errorf("unknown tool: %s", name)
 	}
+
+	// Log tool execution result
+	if err != nil {
+		h.logger.WithFields(logrus.Fields{
+			"tool":  name,
+			"error": err.Error(),
+		}).Error("Tool execution failed")
+	} else {
+		h.logger.WithFields(logrus.Fields{
+			"tool":        name,
+			"result_size": len(result),
+		}).Debug("Tool execution succeeded")
+
+		// Log truncated result at TRACE level for detailed debugging
+		if h.logger.Level <= logrus.TraceLevel {
+			h.logger.WithFields(logrus.Fields{
+				"tool":           name,
+				"result_preview": truncateForLogging(result),
+			}).Trace("Tool execution result preview")
+		}
+	}
+
+	return result, err
 }
 
 // Schema command tools
