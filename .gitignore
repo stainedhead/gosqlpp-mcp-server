@@ -4,7 +4,7 @@
 *.dll
 *.so
 *.dylib
-gosqlpp-mcp-server
+mcp_sqlpp
 .bin
 test.db
 

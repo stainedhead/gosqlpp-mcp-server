@@ -1,8 +1,8 @@
 .PHONY: build test lint clean run docker-build docker-run deploy-dev deploy-prod help
 
 # Variables
-BINARY_NAME=gosqlpp-mcp-server
-DOCKER_IMAGE=gosqlpp-mcp-server
+BINARY_NAME=mcp_sqlpp
+DOCKER_IMAGE=mcp_sqlpp
 GO_VERSION=1.23
 
 # Default target
