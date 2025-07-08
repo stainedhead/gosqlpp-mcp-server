@@ -8,6 +8,11 @@ gosqlpp-mcp-server
 .bin
 test.db
 
+# Temporary verification scripts
+verify_changes.go
+test_tool_names.go
+scripts/verify_changes.go
+
 # Test binary, built with `go test -c`
 *.test
 

@@ -33,6 +33,7 @@ clean: ## Clean build artifacts
 	@echo "Cleaning..."
 	rm -f $(BINARY_NAME)
 	rm -f coverage.out coverage.html
+	rm -f verify_changes.go test_tool_names.go scripts/verify_changes.go
 	go clean
 
 run: build ## Build and run the application
