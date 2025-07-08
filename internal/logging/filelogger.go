@@ -17,8 +17,8 @@ func SetupFileLogging(logger *logrus.Logger, enabled bool) error {
 		return nil
 	}
 
-	// Create logs directory if it doesn't exist
-	logsDir := "logs"
+	// Create logs directory relative to the binary location, not working directory
+	logsDir := resolveLogsDirPath("logs")
 	if err := os.MkdirAll(logsDir, 0755); err != nil {
 		return fmt.Errorf("failed to create logs directory: %w", err)
 	}
@@ -50,10 +50,11 @@ func SetupFileLogging(logger *logrus.Logger, enabled bool) error {
 	})
 
 	logger.WithFields(logrus.Fields{
-		"log_file":     logPath,
-		"max_size_mb":  100,
-		"max_backups":  10,
-		"max_age_days": 30,
+		"log_file":      logPath,
+		"logs_dir":      logsDir,
+		"max_size_mb":   100,
+		"max_backups":   10,
+		"max_age_days":  30,
 	}).Info("File logging enabled")
 
 	return nil
@@ -76,4 +77,26 @@ func SetupDailyRotation(logger *logrus.Logger) {
 		// We just log a daily marker
 		logger.WithField("event", "daily_rotation").Info("Daily log rotation checkpoint")
 	}
+}
+
+// resolveLogsDirPath resolves the logs directory path relative to the binary location
+// This ensures log files are created relative to where the MCP server binary is located,
+// not the working directory from which it was launched
+func resolveLogsDirPath(relativePath string) string {
+	// If it's already an absolute path, return as-is
+	if filepath.IsAbs(relativePath) {
+		return relativePath
+	}
+
+	// Get the directory where the MCP server binary is located
+	binaryPath, err := os.Executable()
+	if err != nil {
+		// Fallback to working directory if we can't determine binary location
+		return relativePath
+	}
+
+	binaryDir := filepath.Dir(binaryPath)
+
+	// Resolve the path relative to the binary directory
+	return filepath.Join(binaryDir, relativePath)
 }

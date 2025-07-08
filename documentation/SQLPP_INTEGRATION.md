@@ -115,7 +115,13 @@ sqlpp:
   timeout: 300
 ```
 
-**Note**: The `executable_path` should be a directory path containing the `sqlpp` executable, not the full path to the executable itself. The server will automatically append `/sqlpp` to find the executable.
+**Important Path Resolution**: 
+- The `executable_path` should be a directory path containing the `sqlpp` executable
+- Relative paths are resolved relative to the MCP server binary location, not the working directory
+- The server automatically appends `/sqlpp` to find the executable
+- Examples:
+  - `".bin"` → `/path/to/mcp_server/.bin/sqlpp`
+  - `"/usr/local/bin"` → `/usr/local/bin/sqlpp`
 
 ## Testing and Validation
 

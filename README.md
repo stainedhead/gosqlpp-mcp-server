@@ -101,6 +101,7 @@ server:
 
 sqlpp:
   executable_path: ".bin"  # Directory containing sqlpp executable (default: .bin)
+                                   # Relative paths are resolved relative to the MCP server binary location
   timeout: 300
 
 log:
@@ -112,6 +113,28 @@ aws:
   region: "us-east-1"
   environment: "development"
 ```
+
+### Path Resolution
+
+Both `executable_path` and log files use binary-relative path resolution:
+
+**Relative Paths**: Resolved relative to the MCP server binary location
+```yaml
+sqlpp:
+  executable_path: ".bin"        # Resolves to: /path/to/mcp_server/.bin/sqlpp
+  executable_path: "bin"         # Resolves to: /path/to/mcp_server/bin/sqlpp
+
+log:
+  file_logging: true             # Creates: /path/to/mcp_server/logs/
+```
+
+**Absolute Paths**: Used as-is
+```yaml
+sqlpp:
+  executable_path: "/usr/local/bin"    # Resolves to: /usr/local/bin/sqlpp
+```
+
+This ensures the server finds sqlpp and creates logs in predictable locations regardless of working directory.
 
 ### Environment Variables
 
@@ -177,6 +200,7 @@ Enable file logging for persistent debugging and monitoring:
 
 **File Logging Features:**
 - **Automatic File Naming**: `logs/mcp_sqlpp_YYYY-MM-DD.log`
+- **Binary-Relative Location**: Logs created relative to MCP server binary location
 - **Log Rotation**: 100MB max file size, 10 backup files, 30-day retention
 - **JSON Format**: Structured logs for better parsing and analysis
 - **Dual Output**: Logs appear in both console and file

@@ -60,6 +60,8 @@ chmod +x mock-bin/sqlpp
 
 # Create test config
 echo -e "\n4. Creating test configuration:"
+# Get current directory to create absolute path for sqlpp executable
+CURRENT_DIR=$(pwd)
 cat > test-config.yaml << EOF
 server:
   transport: "http"
@@ -67,7 +69,7 @@ server:
   port: 8082
 
 sqlpp:
-  executable_path: "./mock-bin"  # Directory containing mock sqlpp executable
+  executable_path: "$CURRENT_DIR/mock-bin"  # Absolute path to directory containing mock sqlpp executable
   timeout: 30
 
 log:

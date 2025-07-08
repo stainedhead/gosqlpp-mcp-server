@@ -152,16 +152,39 @@ func validate(config *Config) error {
 }
 
 // GetSqlppExecutablePath returns the full path to the sqlpp executable
+// Relative paths are resolved relative to the MCP server binary's directory
 func (c *SqlppConfig) GetSqlppExecutablePath() string {
-	if c.ExecutablePath == "" {
-		return filepath.Join(".bin", "sqlpp")
+	executablePath := c.ExecutablePath
+	if executablePath == "" {
+		executablePath = ".bin"
 	}
 
-	// If the path already includes the executable name, return as-is
-	if filepath.Base(c.ExecutablePath) == "sqlpp" {
-		return c.ExecutablePath
+	// If the path already includes the executable name, resolve it relative to binary dir
+	if filepath.Base(executablePath) == "sqlpp" {
+		return c.resolvePath(executablePath)
 	}
 
-	// Otherwise, join the directory path with the executable name
-	return filepath.Join(c.ExecutablePath, "sqlpp")
+	// Otherwise, join the directory path with the executable name and resolve
+	sqlppPath := filepath.Join(executablePath, "sqlpp")
+	return c.resolvePath(sqlppPath)
+}
+
+// resolvePath resolves a path relative to the MCP server binary's directory if it's relative
+func (c *SqlppConfig) resolvePath(path string) string {
+	// If it's already an absolute path, return as-is
+	if filepath.IsAbs(path) {
+		return path
+	}
+
+	// Get the directory where the MCP server binary is located
+	binaryPath, err := os.Executable()
+	if err != nil {
+		// Fallback to working directory if we can't determine binary location
+		return path
+	}
+
+	binaryDir := filepath.Dir(binaryPath)
+	
+	// Resolve the path relative to the binary directory
+	return filepath.Join(binaryDir, path)
 }

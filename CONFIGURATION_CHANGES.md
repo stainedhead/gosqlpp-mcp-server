@@ -77,3 +77,36 @@ As part of cleaning up the project structure, all test-related files have been m
 - All test scripts now check that they're being run from the project root directory
 - Test configuration files have been updated with correct relative paths
 - A comprehensive `test/README.md` documents the new test structure
+
+## Binary-Relative Path Resolution Fix
+
+### Problem
+When the MCP server was launched from a different working directory than where the binary was located, relative paths in `executable_path` would resolve against the working directory instead of the binary's location. This caused issues when the server was started by another process or from a different directory.
+
+### Solution
+Modified `GetSqlppExecutablePath()` to resolve relative paths relative to the MCP server binary's location using `os.Executable()`:
+
+**Before:**
+```go
+// Relative paths resolved against working directory
+return filepath.Join(c.ExecutablePath, "sqlpp")
+```
+
+**After:**
+```go
+// Relative paths resolved against binary directory
+binaryPath, _ := os.Executable()
+binaryDir := filepath.Dir(binaryPath)
+return filepath.Join(binaryDir, path)
+```
+
+### Benefits
+- MCP server can find sqlpp regardless of working directory
+- More reliable when server is launched by other processes
+- Consistent behavior in different deployment scenarios
+- Absolute paths still work as before
+
+### Updated Tests
+- Modified unit tests to account for binary-relative resolution
+- Enhanced test-new-config.go to demonstrate the new behavior
+- Updated integration tests and manual test scripts

@@ -243,35 +243,45 @@ func TestValidate_Valid(t *testing.T) {
 }
 
 func TestSqlppConfig_GetSqlppExecutablePath(t *testing.T) {
+	// Get the current executable path to determine expected binary directory
+	binaryPath, err := os.Executable()
+	require.NoError(t, err)
+	binaryDir := filepath.Dir(binaryPath)
+
 	tests := []struct {
 		name           string
 		executablePath string
-		expected       string
+		expectedFunc   func() string // Use function to compute expected path
 	}{
 		{
-			name:           "Empty path defaults to .bin/sqlpp",
+			name:           "Empty path defaults to .bin/sqlpp relative to binary",
 			executablePath: "",
-			expected:       ".bin/sqlpp",
+			expectedFunc:   func() string { return filepath.Join(binaryDir, ".bin", "sqlpp") },
 		},
 		{
-			name:           "Directory path gets sqlpp appended",
+			name:           "Absolute directory path gets sqlpp appended",
 			executablePath: "/usr/local/bin",
-			expected:       "/usr/local/bin/sqlpp",
+			expectedFunc:   func() string { return "/usr/local/bin/sqlpp" },
 		},
 		{
-			name:           "Full path with sqlpp executable is preserved",
+			name:           "Absolute full path with sqlpp executable is preserved",
 			executablePath: "/usr/local/bin/sqlpp",
-			expected:       "/usr/local/bin/sqlpp",
+			expectedFunc:   func() string { return "/usr/local/bin/sqlpp" },
 		},
 		{
-			name:           "Relative directory path",
+			name:           "Relative directory path resolved relative to binary",
 			executablePath: "bin",
-			expected:       "bin/sqlpp",
+			expectedFunc:   func() string { return filepath.Join(binaryDir, "bin", "sqlpp") },
 		},
 		{
-			name:           "Default .bin directory",
+			name:           "Default .bin directory resolved relative to binary",
 			executablePath: ".bin",
-			expected:       ".bin/sqlpp",
+			expectedFunc:   func() string { return filepath.Join(binaryDir, ".bin", "sqlpp") },
+		},
+		{
+			name:           "Relative path with executable name resolved relative to binary",
+			executablePath: "test-bin/sqlpp",
+			expectedFunc:   func() string { return filepath.Join(binaryDir, "test-bin", "sqlpp") },
 		},
 	}
 
@@ -281,7 +291,8 @@ func TestSqlppConfig_GetSqlppExecutablePath(t *testing.T) {
 				ExecutablePath: tt.executablePath,
 			}
 			result := config.GetSqlppExecutablePath()
-			assert.Equal(t, tt.expected, result)
+			expected := tt.expectedFunc()
+			assert.Equal(t, expected, result)
 		})
 	}
 }

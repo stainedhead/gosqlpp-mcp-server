@@ -78,6 +78,15 @@ cd test && go run test-new-config.go
 cat test/data/test-mcp-commands.json | ./mcp_sqlpp --transport stdio
 ```
 
+## Important Notes
+
+### Path Resolution Behavior
+The MCP server resolves relative paths in `executable_path` relative to the binary's location, not the working directory. This ensures the server can find sqlpp regardless of where it's launched from.
+
+- **test-new-config.go** demonstrates this behavior with comprehensive tests
+- **Test configurations** use absolute paths to avoid confusion during testing
+- **Test scripts** create mock executables in predictable locations relative to the project root
+
 ## Notes
 
 - All test scripts expect to be run from the project root directory
