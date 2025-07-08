@@ -20,13 +20,17 @@ func TestServerCreation(t *testing.T) {
 	tmpDir := t.TempDir()
 
 	// Create a mock sqlpp executable
-	mockSqlpp := filepath.Join(tmpDir, "mock-sqlpp")
+	mockSqlppDir := filepath.Join(tmpDir, "mock-bin")
+	err := os.MkdirAll(mockSqlppDir, 0755)
+	require.NoError(t, err)
+
+	mockSqlpp := filepath.Join(mockSqlppDir, "sqlpp")
 	mockScript := `#!/bin/bash
 echo "sqlpp help information"
 exit 0
 `
 
-	err := os.WriteFile(mockSqlpp, []byte(mockScript), 0755)
+	err = os.WriteFile(mockSqlpp, []byte(mockScript), 0755)
 	require.NoError(t, err)
 
 	// Create test configuration

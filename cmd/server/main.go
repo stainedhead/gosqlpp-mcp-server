@@ -103,7 +103,7 @@ func runServer(cmd *cobra.Command, args []string) error {
 		"version":    "1.0.0",
 		"transport":  cfg.Server.Transport,
 		"log_level":  cfg.Log.Level,
-		"sqlpp_path": cfg.Sqlpp.ExecutablePath,
+		"sqlpp_path": cfg.Sqlpp.GetSqlppExecutablePath(),
 	}).Info("Starting mcp_sqlpp MCP server")
 
 	// Create and run server

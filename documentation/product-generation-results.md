@@ -247,7 +247,7 @@ server:
   host: "localhost"
   port: 8080
 sqlpp:
-  executable_path: "sqlpp"
+  executable_path: ".bin"  # Directory containing sqlpp executable
   timeout: 300
 log:
   level: "info"

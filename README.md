@@ -100,7 +100,7 @@ server:
   port: 8080
 
 sqlpp:
-  executable_path: "sqlpp"
+  executable_path: ".bin"  # Directory containing sqlpp executable (default: .bin)
   timeout: 300
 
 log:
@@ -120,7 +120,7 @@ All configuration options can be set via environment variables with the `GOSQLPP
 ```bash
 export GOSQLPP_MCP_SERVER_TRANSPORT=http
 export GOSQLPP_MCP_SERVER_PORT=8080
-export GOSQLPP_MCP_SQLPP_EXECUTABLE_PATH=/usr/local/bin/sqlpp
+export GOSQLPP_MCP_SQLPP_EXECUTABLE_PATH=/usr/local/bin
 export GOSQLPP_MCP_LOG_LEVEL=debug
 export GOSQLPP_MCP_LOG_FILE_LOGGING=true
 ```

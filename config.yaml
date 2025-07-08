@@ -8,9 +8,9 @@ server:
   port: 8080
 
 sqlpp:
-  # Path to the sqlpp executable
-  # Can be absolute path or command name if in PATH
-  executable_path: "../gosqlpp/sqlpp"
+  # Directory path containing the sqlpp executable (defaults to .bin)
+  # The executable is expected to be named 'sqlpp' within this directory
+  executable_path: ""
   # Timeout for sqlpp operations in seconds
   timeout: 300
 

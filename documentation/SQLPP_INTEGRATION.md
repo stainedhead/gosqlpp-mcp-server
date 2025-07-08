@@ -87,9 +87,9 @@ Common errors and their meanings:
 - **Code**: Use `executeStdinCommand("@schema-tables")`
 
 #### "sqlpp: command not found"
-- **Cause**: sqlpp not in PATH or incorrect executable_path
-- **Fix**: Verify sqlpp installation and configuration
-- **Code**: Check `executable_path` in config.yaml
+- **Cause**: sqlpp not found in the specified directory or incorrect executable_path
+- **Fix**: Verify sqlpp installation and ensure the executable is in the configured directory
+- **Code**: Check `executable_path` in config.yaml points to directory containing sqlpp executable
 
 ## Configuration
 
@@ -111,9 +111,11 @@ connections:
 ```yaml
 # config.yaml
 sqlpp:
-  executable_path: "sqlpp"  # or absolute path
+  executable_path: ".bin"  # Directory containing sqlpp executable (default: .bin)
   timeout: 300
 ```
+
+**Note**: The `executable_path` should be a directory path containing the `sqlpp` executable, not the full path to the executable itself. The server will automatically append `/sqlpp` to find the executable.
 
 ## Testing and Validation
 

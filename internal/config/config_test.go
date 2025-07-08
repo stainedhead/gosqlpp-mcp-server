@@ -26,7 +26,7 @@ func TestLoad_Defaults(t *testing.T) {
 	assert.Equal(t, "stdio", config.Server.Transport)
 	assert.Equal(t, 8080, config.Server.Port)
 	assert.Equal(t, "localhost", config.Server.Host)
-	assert.Equal(t, "sqlpp", config.Sqlpp.ExecutablePath)
+	assert.Equal(t, ".bin", config.Sqlpp.ExecutablePath)
 	assert.Equal(t, 300, config.Sqlpp.Timeout)
 	assert.Equal(t, "info", config.Log.Level)
 	assert.Equal(t, "text", config.Log.Format)
@@ -45,7 +45,7 @@ server:
   port: 9090
   host: "0.0.0.0"
 sqlpp:
-  executable_path: "/usr/local/bin/sqlpp"
+  executable_path: "/usr/local/bin"
   timeout: 600
 log:
   level: "debug"
@@ -66,7 +66,7 @@ aws:
 	assert.Equal(t, "http", config.Server.Transport)
 	assert.Equal(t, 9090, config.Server.Port)
 	assert.Equal(t, "0.0.0.0", config.Server.Host)
-	assert.Equal(t, "/usr/local/bin/sqlpp", config.Sqlpp.ExecutablePath)
+	assert.Equal(t, "/usr/local/bin", config.Sqlpp.ExecutablePath)
 	assert.Equal(t, 600, config.Sqlpp.Timeout)
 	assert.Equal(t, "debug", config.Log.Level)
 	assert.Equal(t, "json", config.Log.Format)
@@ -240,4 +240,48 @@ func TestValidate_Valid(t *testing.T) {
 
 	err := validate(config)
 	assert.NoError(t, err)
+}
+
+func TestSqlppConfig_GetSqlppExecutablePath(t *testing.T) {
+	tests := []struct {
+		name           string
+		executablePath string
+		expected       string
+	}{
+		{
+			name:           "Empty path defaults to .bin/sqlpp",
+			executablePath: "",
+			expected:       ".bin/sqlpp",
+		},
+		{
+			name:           "Directory path gets sqlpp appended",
+			executablePath: "/usr/local/bin",
+			expected:       "/usr/local/bin/sqlpp",
+		},
+		{
+			name:           "Full path with sqlpp executable is preserved",
+			executablePath: "/usr/local/bin/sqlpp",
+			expected:       "/usr/local/bin/sqlpp",
+		},
+		{
+			name:           "Relative directory path",
+			executablePath: "bin",
+			expected:       "bin/sqlpp",
+		},
+		{
+			name:           "Default .bin directory",
+			executablePath: ".bin",
+			expected:       ".bin/sqlpp",
+		},
+	}
+
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			config := &SqlppConfig{
+				ExecutablePath: tt.executablePath,
+			}
+			result := config.GetSqlppExecutablePath()
+			assert.Equal(t, tt.expected, result)
+		})
+	}
 }

@@ -28,7 +28,7 @@ type Server struct {
 // New creates a new MCP server instance
 func New(cfg *config.Config, logger *logrus.Logger) (*Server, error) {
 	// Create sqlpp executor
-	executor := sqlpp.NewExecutor(cfg.Sqlpp.ExecutablePath, cfg.Sqlpp.Timeout, logger)
+	executor := sqlpp.NewExecutor(cfg.Sqlpp.GetSqlppExecutablePath(), cfg.Sqlpp.Timeout, logger)
 
 	// Validate sqlpp executable
 	if err := executor.ValidateExecutable(); err != nil {

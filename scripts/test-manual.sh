@@ -23,7 +23,8 @@ fi
 
 # Create a mock sqlpp for testing
 echo -e "\n3. Creating mock sqlpp executable:"
-cat > mock-sqlpp << 'EOF'
+mkdir -p mock-bin
+cat > mock-bin/sqlpp << 'EOF'
 #!/bin/bash
 case "$1" in
     "--help")
@@ -46,7 +47,7 @@ case "$1" in
 esac
 EOF
 
-chmod +x mock-sqlpp
+chmod +x mock-bin/sqlpp
 
 # Create test config
 echo -e "\n4. Creating test configuration:"
@@ -57,7 +58,7 @@ server:
   port: 8082
 
 sqlpp:
-  executable_path: "./mock-sqlpp"
+  executable_path: "./mock-bin"  # Directory containing mock sqlpp executable
   timeout: 30
 
 log:

@@ -25,8 +25,8 @@ type ServerConfig struct {
 
 // SqlppConfig holds sqlpp executable configuration
 type SqlppConfig struct {
-	ExecutablePath string `mapstructure:"executable_path"`
-	Timeout        int    `mapstructure:"timeout"` // timeout in seconds
+	ExecutablePath string `mapstructure:"executable_path"` // Directory path containing sqlpp executable (defaults to .bin)
+	Timeout        int    `mapstructure:"timeout"`         // timeout in seconds
 }
 
 // LogConfig holds logging configuration
@@ -98,8 +98,8 @@ func setDefaults(v *viper.Viper) {
 	v.SetDefault("server.host", "localhost")
 
 	// Sqlpp defaults
-	v.SetDefault("sqlpp.executable_path", "sqlpp")
-	v.SetDefault("sqlpp.timeout", 300) // 5 minutes
+	v.SetDefault("sqlpp.executable_path", ".bin") // Default to .bin directory
+	v.SetDefault("sqlpp.timeout", 300)            // 5 minutes
 
 	// Log defaults
 	v.SetDefault("log.level", "info")
@@ -149,4 +149,19 @@ func validate(config *Config) error {
 	}
 
 	return nil
+}
+
+// GetSqlppExecutablePath returns the full path to the sqlpp executable
+func (c *SqlppConfig) GetSqlppExecutablePath() string {
+	if c.ExecutablePath == "" {
+		return filepath.Join(".bin", "sqlpp")
+	}
+
+	// If the path already includes the executable name, return as-is
+	if filepath.Base(c.ExecutablePath) == "sqlpp" {
+		return c.ExecutablePath
+	}
+
+	// Otherwise, join the directory path with the executable name
+	return filepath.Join(c.ExecutablePath, "sqlpp")
 }

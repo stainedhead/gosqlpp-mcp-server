@@ -5,7 +5,7 @@ server:
   port: 8080
 
 sqlpp:
-  executable_path: "../gosqlpp/sqlpp"
+  executable_path: "../gosqlpp"  # Directory containing sqlpp executable
   timeout: 300
 
 log:
