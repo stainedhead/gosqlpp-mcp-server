@@ -31,6 +31,8 @@ MCP Client → mcp_sqlpp → sqlpp CLI (via stdin) → Database
 
 **Important**: All SQL commands and schema queries are sent to sqlpp via stdin using the `--stdin` flag. The sqlpp CLI does not accept SQL commands as direct command-line arguments.
 
+For detailed information about sqlpp integration, see [SQLPP_INTEGRATION.md](documentation/SQLPP_INTEGRATION.md).
+
 ## Installation
 
 ### Prerequisites
@@ -40,6 +42,7 @@ MCP Client → mcp_sqlpp → sqlpp CLI (via stdin) → Database
   - **Required**: sqlpp version that supports `--stdin` flag and schema commands (`@schema-*`)
   - **Verify**: Run `sqlpp --help` to ensure `--stdin` flag is available
   - **Test**: Verify schema commands work: `echo "@drivers" | sqlpp --stdin`
+  - **Integration Details**: See [SQLPP_INTEGRATION.md](documentation/SQLPP_INTEGRATION.md) for complete setup and configuration
 - Docker (for containerized deployment)
 - AWS CLI and CDK (for AWS deployment)
 
@@ -191,6 +194,8 @@ Enable file logging for persistent debugging and monitoring:
 The server provides the following MCP tools:
 
 **Note**: All tools internally use sqlpp's `--stdin` interface to send commands. Schema commands like `@schema-tables` and SQL statements are sent as input via stdin to the sqlpp process.
+
+For detailed information about MCP protocol testing and tool validation, see [MCP_TESTING.md](documentation/MCP_TESTING.md).
 
 ### Schema Commands Reference
 
@@ -479,6 +484,8 @@ When deployed to AWS App Runner, logs are automatically sent to CloudWatch with:
 
 ## Troubleshooting
 
+For comprehensive troubleshooting and MCP protocol testing, see [MCP_TESTING.md](documentation/MCP_TESTING.md).
+
 ### Common Issues
 
 1. **"Error: unknown flag: --command"**
@@ -523,6 +530,8 @@ echo "@schema-tables" | sqlpp --stdin --connection main
 # Test with output formatting
 echo "SELECT 'Hello World' as message;" | sqlpp --stdin --connection main --output table
 ```
+
+For detailed sqlpp integration and configuration information, see [SQLPP_INTEGRATION.md](documentation/SQLPP_INTEGRATION.md).
 
 ### Debug Mode
 
@@ -571,5 +580,7 @@ This project is licensed under the MIT License - see the [LICENSE](LICENSE) file
 
 For issues and questions:
 - Create an issue on GitHub
-- Check the [documentation](./documentation/) directory
+- Check the [documentation](./documentation/) directory for detailed guides:
+  - [MCP_TESTING.md](documentation/MCP_TESTING.md) - MCP protocol testing and troubleshooting
+  - [SQLPP_INTEGRATION.md](documentation/SQLPP_INTEGRATION.md) - sqlpp setup and integration details
 - Review sqlpp documentation for database-specific issues
