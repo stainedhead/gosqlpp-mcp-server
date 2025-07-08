@@ -12,6 +12,8 @@ test.db
 verify_changes.go
 test_tool_names.go
 scripts/verify_changes.go
+test-mcp-protocol.sh
+test-mcp-simple.sh
 
 # Test binary, built with `go test -c`
 *.test
