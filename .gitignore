@@ -8,6 +8,10 @@ mcp_sqlpp
 .bin
 test.db
 
+# Log files and directories
+logs/
+*.log
+
 # Temporary verification scripts
 verify_changes.go
 test_tool_names.go

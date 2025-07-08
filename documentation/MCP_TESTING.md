@@ -66,6 +66,70 @@ Use the test script to see different logging levels:
 ./mcp_sqlpp -t stdio --log-level error  # Shows only errors
 ```
 
+### File Logging
+
+The MCP server supports file logging with automatic rolling dates:
+
+#### Enable File Logging
+
+**Via Command Line Flag:**
+```bash
+# Enable file logging with -f or --file-logging
+./mcp_sqlpp --file-logging --log-level trace --transport stdio
+
+# File logging creates logs/ directory with date-based filenames
+# Example: logs/mcp_sqlpp_2025-07-08.log
+```
+
+**Via Configuration File:**
+```yaml
+log:
+  level: "trace"
+  format: "json"
+  file_logging: true  # Enable file logging
+```
+
+#### File Logging Features
+
+- **Automatic Filename Generation**: Files are named with rolling dates (e.g., `mcp_sqlpp_2025-07-08.log`)
+- **JSON Format**: File logs use structured JSON format for better parsing
+- **Dual Output**: Logs are written to both console and file simultaneously
+- **Log Rotation**: Uses lumberjack for automatic log rotation:
+  - Max file size: 100MB
+  - Max backup files: 10
+  - Max age: 30 days
+  - Automatic compression of old files
+
+#### What Gets Logged to Files
+
+When file logging is enabled, all logs (including TRACE level) are captured:
+
+**MCP Protocol Calls:**
+- Client initialization requests and responses
+- Tool list requests and responses
+- Tool execution calls and results
+
+**Tool Execution Details:**
+- Tool name and arguments (DEBUG level)
+- Execution success/failure status
+- Result size and truncated preview (TRACE level)
+
+**sqlpp Integration:**
+- Command arguments and parameters (DEBUG level)
+- Execution success/failure with error details
+- Output size and truncated preview (TRACE level)
+
+#### Example File Log Entry
+```json
+{
+  "level": "trace",
+  "msg": "Tool execution result preview",
+  "result_preview": "name       driver     notes...",
+  "time": "2025-07-08T15:25:49.983164-04:00",
+  "tool": "list_connections"
+}
+```
+
 ### New Connection Tests
 
 The following tests have been added to ensure `list_connections` works correctly:
@@ -183,7 +247,7 @@ make build
 (
   echo '{"jsonrpc":"2.0","id":1,"method":"initialize","params":{"protocolVersion":"2024-11-05","capabilities":{"tools":{}},"clientInfo":{"name":"test-client","version":"1.0.0"}}}'
   echo '{"jsonrpc":"2.0","method":"notifications/initialized"}'
-  echo '{"jsonrpc":"2.0","id":2,"method":"tools/list"}'
+  echo 'zs'
   echo '{"jsonrpc":"2.0","id":3,"method":"tools/call","params":{"name":"list_drivers","arguments":{}}}'
 ) | ./mcp_sqlpp -t stdio
 ```

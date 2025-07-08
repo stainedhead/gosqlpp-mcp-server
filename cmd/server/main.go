@@ -8,15 +8,17 @@ import (
 	"github.com/sirupsen/logrus"
 	"github.com/spf13/cobra"
 	"github.com/stainedhead/gosqlpp-mcp-server/internal/config"
+	"github.com/stainedhead/gosqlpp-mcp-server/internal/logging"
 	"github.com/stainedhead/gosqlpp-mcp-server/internal/server"
 )
 
 var (
-	configPath string
-	logLevel   string
-	transport  string
-	port       int
-	host       string
+	configPath  string
+	logLevel    string
+	transport   string
+	port        int
+	host        string
+	fileLogging bool
 )
 
 func main() {
@@ -43,6 +45,7 @@ func init() {
 	rootCmd.PersistentFlags().StringVarP(&transport, "transport", "t", "", "Transport mode (stdio, http)")
 	rootCmd.PersistentFlags().IntVarP(&port, "port", "p", 0, "HTTP server port (only for HTTP transport)")
 	rootCmd.PersistentFlags().StringVar(&host, "host", "", "HTTP server host (only for HTTP transport)")
+	rootCmd.PersistentFlags().BoolVarP(&fileLogging, "file-logging", "f", false, "Enable file logging with automatic rolling dates")
 }
 
 func runServer(cmd *cobra.Command, args []string) error {
@@ -65,6 +68,9 @@ func runServer(cmd *cobra.Command, args []string) error {
 	if host != "" {
 		cfg.Server.Host = host
 	}
+	if fileLogging {
+		cfg.Log.FileLogging = true
+	}
 
 	// Setup logger
 	logger := logrus.New()
@@ -83,6 +89,13 @@ func runServer(cmd *cobra.Command, args []string) error {
 		logger.SetFormatter(&logrus.TextFormatter{
 			FullTimestamp: true,
 		})
+	}
+
+	// Setup file logging if enabled
+	if cfg.Log.FileLogging {
+		if err := logging.SetupFileLogging(logger, true); err != nil {
+			return fmt.Errorf("failed to setup file logging: %w", err)
+		}
 	}
 
 	// Log startup information

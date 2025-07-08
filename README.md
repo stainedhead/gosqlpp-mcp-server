@@ -10,8 +10,9 @@ A Model Context Protocol (MCP) server that provides access to the [sqlpp](https:
 - **SQL Execution**: Execute SQL commands with proper output formatting
 - **Connection Management**: List and manage database connections
 - **Driver Information**: Query available database drivers
+- **Comprehensive Logging**: Multiple log levels with optional file logging and automatic rotation
 - **Containerized Deployment**: Docker support with AWS App Runner deployment
-- **Production Ready**: Comprehensive logging, health checks, and monitoring
+- **Production Ready**: Comprehensive logging, health checks, monitoring, and extensive test coverage
 
 ## Architecture
 
@@ -46,8 +47,8 @@ MCP Client → mcp_sqlpp → sqlpp CLI (via stdin) → Database
 
 1. Clone the repository:
 ```bash
-git clone https://github.com/stainedhead/mcp_sqlpp.git
-cd mcp_sqlpp
+git clone https://github.com/stainedhead/gosqlpp-mcp-server.git
+cd gosqlpp-mcp-server
 ```
 
 2. Install dependencies:
@@ -57,24 +58,24 @@ go mod download
 
 3. Build the application:
 ```bash
-go build -o gosqlpp-mcp-server ./cmd/server
+go build -o mcp_sqlpp ./cmd/server
 ```
 
 4. Run with default configuration:
 ```bash
-./gosqlpp-mcp-server
+./mcp_sqlpp
 ```
 
 ### Docker Deployment
 
 1. Build the Docker image:
 ```bash
-docker build -f deployment/docker/Dockerfile -t gosqlpp-mcp-server .
+docker build -f deployment/docker/Dockerfile -t mcp_sqlpp .
 ```
 
 2. Run the container:
 ```bash
-docker run -p 8080:8080 gosqlpp-mcp-server --transport http
+docker run -p 8080:8080 mcp_sqlpp --transport http
 ```
 
 ## Configuration
@@ -102,6 +103,7 @@ sqlpp:
 log:
   level: "info"
   format: "text"  # or "json"
+  file_logging: false  # Enable file logging with automatic rolling dates
 
 aws:
   region: "us-east-1"
@@ -117,19 +119,72 @@ export GOSQLPP_MCP_SERVER_TRANSPORT=http
 export GOSQLPP_MCP_SERVER_PORT=8080
 export GOSQLPP_MCP_SQLPP_EXECUTABLE_PATH=/usr/local/bin/sqlpp
 export GOSQLPP_MCP_LOG_LEVEL=debug
+export GOSQLPP_MCP_LOG_FILE_LOGGING=true
 ```
 
 ### Command Line Flags
 
 ```bash
-./gosqlpp-mcp-server --help
+./mcp_sqlpp --help
 ```
 
-Common options:
+Available options:
 - `--transport, -t`: Transport mode (stdio, http)
-- `--port, -p`: HTTP server port
+- `--port, -p`: HTTP server port (for HTTP transport)
+- `--host`: HTTP server host (for HTTP transport)
 - `--config, -c`: Configuration file path
-- `--log-level, -l`: Log level
+- `--log-level, -l`: Log level (trace, debug, info, warn, error, fatal, panic)
+- `--file-logging, -f`: Enable file logging with automatic rolling dates
+
+## Logging
+
+The MCP server provides comprehensive logging capabilities with multiple levels and optional file logging.
+
+### Log Levels
+
+- **TRACE**: Most verbose, includes truncated output previews of tool results and sqlpp responses
+- **DEBUG**: Tool execution details, sqlpp commands, and metadata (default for development)
+- **INFO**: General application flow and important events
+- **WARN/ERROR/FATAL**: Warnings, errors, and fatal conditions
+
+### Console Logging
+
+By default, logs are written to the console in text format:
+
+```bash
+# Set log level via command line
+./mcp_sqlpp --log-level debug
+
+# Set log level via environment variable
+export GOSQLPP_MCP_LOG_LEVEL=trace
+./mcp_sqlpp
+```
+
+### File Logging
+
+Enable file logging for persistent debugging and monitoring:
+
+```bash
+# Enable via command line flag
+./mcp_sqlpp --file-logging --log-level trace
+
+# Enable via configuration file
+# Set file_logging: true in config.yaml
+```
+
+**File Logging Features:**
+- **Automatic File Naming**: `logs/mcp_sqlpp_YYYY-MM-DD.log`
+- **Log Rotation**: 100MB max file size, 10 backup files, 30-day retention
+- **JSON Format**: Structured logs for better parsing and analysis
+- **Dual Output**: Logs appear in both console and file
+- **Compression**: Old log files are automatically compressed
+
+**What Gets Logged:**
+- MCP protocol initialization and tool calls
+- Tool execution with arguments and result sizes
+- sqlpp command execution and output (truncated at TRACE level)
+- Error details and debugging information
+- Performance metrics and timing
 
 ## MCP Tools
 
@@ -206,14 +261,33 @@ List all available database drivers.
 ### STDIO Mode (for MCP clients)
 
 ```bash
-./gosqlpp-mcp-server --transport stdio
+./mcp_sqlpp --transport stdio
 ```
 
 ### HTTP Mode (for testing and web integration)
 
 ```bash
-./gosqlpp-mcp-server --transport http --port 8080
+./mcp_sqlpp --transport http --port 8080
 ```
+
+### File Logging
+
+Enable detailed file logging with automatic rolling dates:
+
+```bash
+# Enable file logging via command line
+./mcp_sqlpp --file-logging --log-level trace --transport stdio
+
+# File logging via configuration
+# Set file_logging: true in config.yaml
+./mcp_sqlpp --config config.yaml
+```
+
+When file logging is enabled:
+- Logs are written to `logs/mcp_sqlpp_YYYY-MM-DD.log`
+- Files automatically rotate (100MB max, 10 backups, 30 day retention)
+- TRACE level includes truncated output previews for debugging
+- All MCP calls, tool executions, and sqlpp interactions are logged
 
 Test the health endpoint:
 ```bash
@@ -227,7 +301,7 @@ Configure your MCP client to connect to the server:
 **STDIO Transport:**
 ```json
 {
-  "command": "./gosqlpp-mcp-server",
+  "command": "./mcp_sqlpp",
   "args": ["--transport", "stdio"]
 }
 ```
@@ -303,12 +377,47 @@ ENVIRONMENT=development cdk destroy --profile your-aws-profile
 go test ./...
 
 # Run tests with coverage
-go test -coverprofile=coverage.out ./...
-go tool cover -html=coverage.out
+go test -cover ./...
 
-# Run specific test package
-go test ./internal/config
+# Run tests with detailed output
+go test -v ./...
 ```
+
+### Test Categories
+
+**Unit Tests:**
+- **Configuration**: Loading and validation of config files and environment variables
+- **Tool Execution**: Validation of all MCP tools with various input scenarios
+- **Connection Management**: Testing connection listing and default connection handling
+- **Logging Functions**: Validation of output truncation and logging levels
+
+**Integration Tests:**
+- **Real sqlpp Integration**: Tests with actual sqlpp executable to verify end-to-end functionality
+- **MCP Protocol Compliance**: Validation of proper MCP handshake and tool calling sequences
+- **Error Handling**: Testing of various failure scenarios and error propagation
+
+**Specific Test Highlights:**
+- **`list_connections` Validation**: Ensures proper connection format and default connection detection
+- **Empty Result Handling**: Tests graceful handling of empty or missing data
+- **Output Truncation**: Validates that large outputs are properly truncated for logging
+- **TRACE Level Logging**: Verification that detailed debugging logs are captured correctly
+
+### Manual Testing
+
+Additional manual testing scripts are available:
+
+```bash
+# Test MCP protocol compliance
+bash scripts/test-mcp-protocol.sh
+
+# Test logging functionality  
+bash scripts/test-logging.sh
+
+# Test all tool integrations
+bash scripts/test-tools.sh
+```
+
+For detailed testing information, see [MCP_TESTING.md](documentation/MCP_TESTING.md).
 
 ### Linting
 
@@ -374,7 +483,7 @@ When deployed to AWS App Runner, logs are automatically sent to CloudWatch with:
 
 1. **"Error: unknown flag: --command"**
    - **Cause**: This error indicates an older version of the MCP server that incorrectly tried to use a non-existent `--command` flag
-   - **Solution**: Ensure you're using the latest version of gosqlpp-mcp-server. The server should use stdin to send commands to sqlpp
+   - **Solution**: Ensure you're using the latest version of mcp_sqlpp. The server should use stdin to send commands to sqlpp
    - **Verification**: Check that your server version includes the stdin-based implementation
 
 2. **"failed to open file @schema-tables"**
@@ -420,8 +529,30 @@ echo "SELECT 'Hello World' as message;" | sqlpp --stdin --connection main --outp
 Enable debug logging for detailed troubleshooting:
 
 ```bash
-./gosqlpp-mcp-server --log-level debug
+./mcp_sqlpp --log-level debug
 ```
+
+### File Logging for Debugging
+
+For comprehensive debugging, enable file logging to capture all interactions:
+
+```bash
+# Enable file logging with TRACE level for maximum detail
+./mcp_sqlpp --file-logging --log-level trace --transport stdio
+
+# View recent logs
+tail -f logs/mcp_sqlpp_$(date +%Y-%m-%d).log
+
+# Search for specific tool or error logs
+grep "list_connections" logs/mcp_sqlpp_*.log
+grep "error" logs/mcp_sqlpp_*.log
+```
+
+File logging captures:
+- All MCP protocol messages (initialize, tool calls, responses)
+- Tool execution details with arguments and results
+- sqlpp command execution with truncated output previews
+- Error details and debugging information
 
 ## Contributing
 

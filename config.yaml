@@ -19,6 +19,8 @@ log:
   level: "info"
   # Log format: "text" or "json"
   format: "text"
+  # Enable file logging with automatic rolling dates
+  file_logging: false
 
 aws:
   # Default AWS region for deployment

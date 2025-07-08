@@ -31,8 +31,9 @@ type SqlppConfig struct {
 
 // LogConfig holds logging configuration
 type LogConfig struct {
-	Level  string `mapstructure:"level"`
-	Format string `mapstructure:"format"` // "json" or "text"
+	Level       string `mapstructure:"level"`
+	Format      string `mapstructure:"format"`       // "json" or "text"
+	FileLogging bool   `mapstructure:"file_logging"` // Enable file logging
 }
 
 // AWSConfig holds AWS deployment configuration
@@ -57,7 +58,7 @@ func Load(configPath string) (*Config, error) {
 		v.SetConfigType("yaml")
 		v.AddConfigPath(".")
 		v.AddConfigPath("$HOME/.gosqlpp-mcp-server")
-		
+
 		// Also check for config in executable directory
 		if execPath, err := os.Executable(); err == nil {
 			v.AddConfigPath(filepath.Dir(execPath))
@@ -103,6 +104,7 @@ func setDefaults(v *viper.Viper) {
 	// Log defaults
 	v.SetDefault("log.level", "info")
 	v.SetDefault("log.format", "text")
+	v.SetDefault("log.file_logging", false)
 
 	// AWS defaults
 	v.SetDefault("aws.region", "us-east-1")
